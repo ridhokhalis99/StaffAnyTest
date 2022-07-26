@@ -1,4 +1,5 @@
 import React, { FunctionComponent, useEffect, useState } from "react";
+import moment from "moment";
 import Grid from "@material-ui/core/Grid";
 import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
@@ -12,9 +13,12 @@ import EditIcon from "@material-ui/icons/Edit";
 import Fab from "@material-ui/core/Fab";
 import AddIcon from "@material-ui/icons/Add";
 import { useHistory } from "react-router-dom";
+import { Button, Box } from "@material-ui/core";
 import ConfirmDialog from "../components/ConfirmDialog";
 import Alert from "@material-ui/lab/Alert";
 import { Link as RouterLink } from "react-router-dom";
+import ArrowBackIosIcon from "@material-ui/icons/ArrowBackIos";
+import ArrowForwardIosIcon from "@material-ui/icons/ArrowForwardIos";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -26,6 +30,10 @@ const useStyles = makeStyles((theme) => ({
     right: 40,
     backgroundColor: "white",
     color: theme.color.turquoise,
+  },
+  publishButton: {
+    color: "green",
+    borderColor: "green",
   },
 }));
 
@@ -66,6 +74,20 @@ const Shift = () => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<boolean>(false);
   const [deleteLoading, setDeleteLoading] = useState<boolean>(false);
 
+  //current Week
+  const today = new Date();
+  const first = today.getDate() - today.getDay() + 1;
+  const last = first + 6;
+  const monday = new Date(today.setDate(first));
+  const sunday = new Date(today.setDate(last));
+
+  const [currentStartWeek, setCurrentStartWeek] = useState(
+    moment(monday).format("YYYY-MM-DD")
+  );
+  const [currentEndWeek, setCurrentEndWeek] = useState(
+    moment(sunday).format("YYYY-MM-DD")
+  );
+
   const onDeleteClick = (id: string) => {
     setSelectedId(id);
     setShowDeleteConfirm(true);
@@ -76,23 +98,23 @@ const Shift = () => {
     setShowDeleteConfirm(false);
   };
 
-  useEffect(() => {
-    const getData = async () => {
-      try {
-        setIsLoading(true);
-        setErrMsg("");
-        const { results } = await getShifts();
-        setRows(results);
-      } catch (error) {
-        const message = getErrorMessage(error);
-        setErrMsg(message);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  const getData = async () => {
+    try {
+      setIsLoading(true);
+      setErrMsg("");
+      const { results } = await getShifts(currentStartWeek, currentEndWeek);
+      setRows(results);
+    } catch (error) {
+      const message = getErrorMessage(error);
+      setErrMsg(message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
+  useEffect(() => {
     getData();
-  }, []);
+  }, [currentStartWeek, currentEndWeek]);
 
   const columns = [
     {
@@ -149,6 +171,24 @@ const Shift = () => {
     }
   };
 
+  const changeWeekHandler = (type: string) => {
+    let monday = new Date(currentStartWeek);
+    let sunday = new Date(currentEndWeek);
+    console.log(type);
+    if (type === "previous") {
+      monday.setDate(monday.getDate() - 7);
+      sunday.setDate(sunday.getDate() - 7);
+    } else {
+      monday.setDate(monday.getDate() + 7);
+      sunday.setDate(sunday.getDate() + 7);
+    }
+    let newMonday = moment(monday).format("YYYY-MM-DD");
+    let newSunday = moment(sunday).format("YYYY-MM-DD");
+
+    setCurrentStartWeek(newMonday);
+    setCurrentEndWeek(newSunday);
+  };
+
   return (
     <Grid container spacing={3}>
       <Grid item xs={12}>
@@ -159,8 +199,27 @@ const Shift = () => {
             ) : (
               <></>
             )}
+            <Grid>
+              <Box display="flex">
+                <Button onClick={() => changeWeekHandler("previous")}>
+                  <ArrowBackIosIcon />
+                </Button>
+                <p>
+                  {moment(currentStartWeek).format("MMM DD")}-
+                  {moment(currentEndWeek).format("MMM DD")}
+                </p>
+                <Button onClick={() => changeWeekHandler("next")}>
+                  <ArrowForwardIosIcon />
+                </Button>
+                <Box sx={{ ml: "auto", my: "auto" }}>
+                  <Button variant="outlined" className={classes.publishButton}>
+                    Publish
+                  </Button>
+                </Box>
+              </Box>
+            </Grid>
             <DataTable
-              title="Shifts"
+              // title="Shifts"
               columns={columns}
               data={rows}
               pagination
