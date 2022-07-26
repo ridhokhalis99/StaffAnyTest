@@ -74,20 +74,6 @@ const Shift = () => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<boolean>(false);
   const [deleteLoading, setDeleteLoading] = useState<boolean>(false);
 
-  //current Week
-  const today = new Date();
-  const first = today.getDate() - today.getDay() + 1;
-  const last = first + 6;
-  const monday = new Date(today.setDate(first));
-  const sunday = new Date(today.setDate(last));
-
-  const [currentStartWeek, setCurrentStartWeek] = useState(
-    moment(monday).format("YYYY-MM-DD")
-  );
-  const [currentEndWeek, setCurrentEndWeek] = useState(
-    moment(sunday).format("YYYY-MM-DD")
-  );
-
   const onDeleteClick = (id: string) => {
     setSelectedId(id);
     setShowDeleteConfirm(true);
@@ -111,6 +97,24 @@ const Shift = () => {
       setIsLoading(false);
     }
   };
+
+  const getCurrentWeek = () => {
+    const today = new Date();
+    const first = today.getDate() - today.getDay() + 1;
+    const last = first + 6;
+    const monday = new Date(today.setDate(first));
+    const sunday = new Date(today.setDate(last));
+    return { monday, sunday };
+  };
+
+  //current Week
+  const { monday, sunday } = getCurrentWeek();
+  const [currentStartWeek, setCurrentStartWeek] = useState(
+    moment(monday).format("YYYY-MM-DD")
+  );
+  const [currentEndWeek, setCurrentEndWeek] = useState(
+    moment(sunday).format("YYYY-MM-DD")
+  );
 
   useEffect(() => {
     getData();
