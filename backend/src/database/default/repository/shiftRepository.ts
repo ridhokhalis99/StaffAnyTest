@@ -4,6 +4,7 @@ import {
   FindOneOptions,
   FindConditions,
   DeleteResult,
+  Between,
 } from "typeorm";
 import moduleLogger from "../../../shared/functions/logger";
 import Shift from "../entity/shift";
@@ -14,7 +15,16 @@ const logger = moduleLogger("shiftRepository");
 export const find = async (opts?: FindManyOptions<Shift>): Promise<Shift[]> => {
   logger.info("Find");
   const repository = getRepository(Shift);
-  const data = await repository.find(opts);
+  const { where, order } = opts;
+  const startDate = where[0];
+  const endDate = where[1];
+  console.log(startDate, endDate);
+  const data = await repository.find({
+    where: {
+      date: Between(startDate, endDate),
+    },
+    order,
+  });
   return data;
 };
 
