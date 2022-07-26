@@ -49,6 +49,9 @@ export const create = async (req: Request, h: ResponseToolkit) => {
   try {
     const body = req.payload as ICreateShift;
     const data = await shiftUsecase.create(body);
+    if (!data) {
+      throw { message: "Clashing schedule" };
+    }
     const res: ISuccessResponse = {
       statusCode: 200,
       message: "Create shift successful",
@@ -66,8 +69,10 @@ export const updateById = async (req: Request, h: ResponseToolkit) => {
   try {
     const id = req.params.id;
     const body = req.payload as IUpdateShift;
-
     const data = await shiftUsecase.updateById(id, body);
+    if (!data) {
+      throw { message: "Clashing schedule" };
+    }
     const res: ISuccessResponse = {
       statusCode: 200,
       message: "Update shift successful",
