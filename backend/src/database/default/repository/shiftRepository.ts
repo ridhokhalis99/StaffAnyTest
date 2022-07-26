@@ -5,6 +5,10 @@ import {
   FindConditions,
   DeleteResult,
   Between,
+  MoreThan,
+  LessThan,
+  MoreThanOrEqual,
+  LessThanOrEqual,
 } from "typeorm";
 import moduleLogger from "../../../shared/functions/logger";
 import Shift from "../entity/shift";
@@ -51,6 +55,29 @@ export const findOne = async (
 export const create = async (payload: Shift): Promise<Shift> => {
   logger.info("Create");
   const repository = getRepository(Shift);
+  let { date, startTime, endTime } = payload;
+  const data = await repository.find({
+    where: [
+      {
+        startTime: Between(startTime, endTime),
+        endTime: Between(startTime, endTime),
+        date,
+      },
+      {
+        endTime: Between(startTime, endTime),
+        date,
+      },
+      {
+        startTime: LessThanOrEqual(startTime),
+        endTime: MoreThanOrEqual(endTime),
+        date,
+      },
+    ],
+  });
+  console.log(data);
+  if (data.length) {
+    return;
+  }
   const newdata = await repository.save(payload);
   return newdata;
 };
@@ -61,6 +88,28 @@ export const updateById = async (
 ): Promise<Shift> => {
   logger.info("Update by id");
   const repository = getRepository(Shift);
+  const { date, startTime, endTime } = payload;
+  const data = await repository.find({
+    where: [
+      {
+        startTime: Between(startTime, endTime),
+        endTime: Between(startTime, endTime),
+        date,
+      },
+      {
+        endTime: Between(startTime, endTime),
+        date,
+      },
+      {
+        startTime: LessThanOrEqual(startTime),
+        endTime: MoreThanOrEqual(endTime),
+        date,
+      },
+    ],
+  });
+  if (data.length) {
+    return;
+  }
   await repository.update(id, payload);
   return findById(id);
 };
