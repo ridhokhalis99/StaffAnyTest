@@ -254,7 +254,6 @@ const Shift = () => {
               </Box>
             </Grid>
             <DataTable
-              // title="Shifts"
               columns={columns}
               data={rows}
               pagination
