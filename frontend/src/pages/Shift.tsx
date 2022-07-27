@@ -5,7 +5,7 @@ import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
 import { makeStyles } from "@material-ui/core/styles";
 import { getErrorMessage } from "../helper/error/index";
-import { deleteShiftById, getShifts } from "../helper/api/shift";
+import { deleteShiftById, getShifts, publishShift } from "../helper/api/shift";
 import DataTable from "react-data-table-component";
 import IconButton from "@material-ui/core/IconButton";
 import DeleteIcon from "@material-ui/icons/Delete";
@@ -39,10 +39,12 @@ const useStyles = makeStyles((theme) => ({
 
 interface ActionButtonProps {
   id: string;
+  isPublished: boolean;
   onDelete: () => void;
 }
 const ActionButton: FunctionComponent<ActionButtonProps> = ({
   id,
+  isPublished,
   onDelete,
 }) => {
   return (
@@ -51,11 +53,17 @@ const ActionButton: FunctionComponent<ActionButtonProps> = ({
         size="small"
         aria-label="delete"
         component={RouterLink}
+        disabled={isPublished}
         to={`/shift/${id}/edit`}
       >
         <EditIcon fontSize="small" />
       </IconButton>
-      <IconButton size="small" aria-label="delete" onClick={() => onDelete()}>
+      <IconButton
+        size="small"
+        aria-label="delete"
+        disabled={isPublished}
+        onClick={() => onDelete()}
+      >
         <DeleteIcon fontSize="small" />
       </IconButton>
     </div>
@@ -66,7 +74,7 @@ const Shift = () => {
   const classes = useStyles();
   const history = useHistory();
 
-  const [rows, setRows] = useState([]);
+  const [rows, setRows] = useState<any>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [errMsg, setErrMsg] = useState("");
 
@@ -144,7 +152,11 @@ const Shift = () => {
     {
       name: "Actions",
       cell: (row: any) => (
-        <ActionButton id={row.id} onDelete={() => onDeleteClick(row.id)} />
+        <ActionButton
+          id={row.id}
+          isPublished={row.isPublished}
+          onDelete={() => onDeleteClick(row.id)}
+        />
       ),
     },
   ];
@@ -157,11 +169,7 @@ const Shift = () => {
       if (selectedId === null) {
         throw new Error("ID is null");
       }
-
-      console.log(deleteDataById);
-
       await deleteShiftById(selectedId);
-
       const tempRows = [...rows];
       const idx = tempRows.findIndex((v: any) => v.id === selectedId);
       tempRows.splice(idx, 1);
@@ -178,7 +186,6 @@ const Shift = () => {
   const changeWeekHandler = (type: string) => {
     let monday = new Date(currentStartWeek);
     let sunday = new Date(currentEndWeek);
-    console.log(type);
     if (type === "previous") {
       monday.setDate(monday.getDate() - 7);
       sunday.setDate(sunday.getDate() - 7);
@@ -191,6 +198,25 @@ const Shift = () => {
 
     setCurrentStartWeek(newMonday);
     setCurrentEndWeek(newSunday);
+  };
+
+  const publishHandler = async () => {
+    try {
+      setDeleteLoading(true);
+      setErrMsg("");
+      await publishShift(currentStartWeek, currentEndWeek);
+      const newRows = rows.map((v: any) => {
+        v.isPublished = true;
+        return v;
+      });
+      setRows(newRows);
+    } catch (error) {
+      const message = getErrorMessage(error);
+      setErrMsg(message);
+    } finally {
+      setDeleteLoading(false);
+      onCloseDeleteDialog();
+    }
   };
 
   return (
@@ -216,7 +242,12 @@ const Shift = () => {
                   <ArrowForwardIosIcon />
                 </Button>
                 <Box sx={{ ml: "auto", my: "auto" }}>
-                  <Button variant="outlined" className={classes.publishButton}>
+                  <Button
+                    variant="outlined"
+                    disabled={rows.length === 0 || rows[0].isPublished}
+                    className={classes.publishButton}
+                    onClick={() => publishHandler()}
+                  >
                     Publish
                   </Button>
                 </Box>

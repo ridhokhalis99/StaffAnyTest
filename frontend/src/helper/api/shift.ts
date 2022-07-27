@@ -31,3 +31,11 @@ export const deleteShiftById = async (id: string) => {
   const { data } = await api.delete(`/shifts/${id}`);
   return data;
 };
+
+export const publishShift = async (startDate: string, endDate: string) => {
+  const api = getAxiosInstance();
+  const { data } = await api.patch(
+    `/shifts/publish?where=${startDate}&where=${endDate}`
+  );
+  return data;
+};

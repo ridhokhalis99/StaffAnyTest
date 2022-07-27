@@ -36,3 +36,9 @@ export const updateById = async (
 export const deleteById = async (id: string | string[]) => {
   return shiftRepository.deleteById(id);
 };
+
+export const publishShift = async (
+  opts: FindManyOptions<Shift>
+): Promise<Shift[]> => {
+  return shiftRepository.publishShift(opts);
+};
