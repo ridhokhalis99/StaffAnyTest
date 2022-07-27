@@ -14,6 +14,9 @@ export default class Shift extends BaseTimestamp {
   })
   date: string;
 
+  @Column({ default: false })
+  isPublished: boolean;
+
   @Column({
     type: "time",
   })

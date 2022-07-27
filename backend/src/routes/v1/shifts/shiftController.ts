@@ -22,7 +22,7 @@ export const find = async (req: Request, h: ResponseToolkit) => {
     };
     return res;
   } catch (error) {
-    logger.error(error.message)
+    logger.error(error.message);
     return errorHandler(h, error);
   }
 };
@@ -39,7 +39,7 @@ export const findById = async (req: Request, h: ResponseToolkit) => {
     };
     return res;
   } catch (error) {
-    logger.error(error.message)
+    logger.error(error.message);
     return errorHandler(h, error);
   }
 };
@@ -49,6 +49,9 @@ export const create = async (req: Request, h: ResponseToolkit) => {
   try {
     const body = req.payload as ICreateShift;
     const data = await shiftUsecase.create(body);
+    if (!data) {
+      throw { message: "Failed to create shift" };
+    }
     const res: ISuccessResponse = {
       statusCode: 200,
       message: "Create shift successful",
@@ -56,7 +59,7 @@ export const create = async (req: Request, h: ResponseToolkit) => {
     };
     return res;
   } catch (error) {
-    logger.error(error.message)
+    logger.error(error.message);
     return errorHandler(h, error);
   }
 };
@@ -66,8 +69,10 @@ export const updateById = async (req: Request, h: ResponseToolkit) => {
   try {
     const id = req.params.id;
     const body = req.payload as IUpdateShift;
-
     const data = await shiftUsecase.updateById(id, body);
+    if (data) {
+      throw { message: "Failed to create shift" };
+    }
     const res: ISuccessResponse = {
       statusCode: 200,
       message: "Update shift successful",
@@ -75,7 +80,7 @@ export const updateById = async (req: Request, h: ResponseToolkit) => {
     };
     return res;
   } catch (error) {
-    logger.error(error.message)
+    logger.error(error.message);
     return errorHandler(h, error);
   }
 };
@@ -92,7 +97,24 @@ export const deleteById = async (req: Request, h: ResponseToolkit) => {
     };
     return res;
   } catch (error) {
-    logger.error(error.message)
+    logger.error(error.message);
+    return errorHandler(h, error);
+  }
+};
+
+export const publishShift = async (req: Request, h: ResponseToolkit) => {
+  logger.info("Publish current week shift");
+  try {
+    const filter = req.query;
+    const data = await shiftUsecase.publishShift(filter);
+    const res: ISuccessResponse = {
+      statusCode: 200,
+      message: "Publish current week shift",
+      results: data,
+    };
+    return res;
+  } catch (error) {
+    logger.error(error.message);
     return errorHandler(h, error);
   }
 };

@@ -1,8 +1,8 @@
-import 'reflect-metadata';
-import { Connection, createConnections } from 'typeorm';
-import moduleLogger from '../shared/functions/logger';
+import "reflect-metadata";
+import { Connection, createConnections } from "typeorm";
+import moduleLogger from "../shared/functions/logger";
 
-const logger = moduleLogger('database');
+const logger = moduleLogger("database");
 
 export const dbConnection = (() => {
   let connections: Connection[];
@@ -17,13 +17,13 @@ export const dbConnection = (() => {
   };
 
   return {
-    getConnection: async (connectionName = 'default'): Promise<Connection> => {
+    getConnection: async (connectionName = "default"): Promise<Connection> => {
       if (!connections) {
-        logger.info('Creating new database connection...');
+        logger.info("Creating new database connection...");
         connections = await createInstance();
       }
 
-      const conn = connections.find(v => {
+      const conn = connections.find((v) => {
         return v.name === connectionName;
       });
 
