@@ -67,7 +67,7 @@ export const create = async (payload: any): Promise<Shift> => {
       return;
     }
   }
-  const data = await repository.find({
+  const clashChecker = await repository.find({
     where: [
       {
         startTime: Between(startTime, endTime),
@@ -85,7 +85,7 @@ export const create = async (payload: any): Promise<Shift> => {
       },
     ],
   });
-  if (data.length) {
+  if (clashChecker.length) {
     return;
   }
   const newdata = await repository.save(payload);
@@ -99,7 +99,7 @@ export const updateById = async (
   logger.info("Update by id");
   const repository = getRepository(Shift);
   const { date, startTime, endTime } = payload;
-  const data = await repository.find({
+  const clashChecker = await repository.find({
     where: [
       {
         startTime: Between(startTime, endTime),
@@ -117,7 +117,7 @@ export const updateById = async (
       },
     ],
   });
-  if (data.length) {
+  if (clashChecker.length) {
     return;
   }
   const shift = await repository.findOne({
