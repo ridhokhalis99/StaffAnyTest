@@ -7,6 +7,7 @@ import {
   Between,
   MoreThanOrEqual,
   LessThanOrEqual,
+  Raw,
 } from "typeorm";
 import moduleLogger from "../../../shared/functions/logger";
 import Shift from "../entity/shift";
@@ -75,7 +76,9 @@ export const create = async (payload: any): Promise<Shift> => {
         date,
       },
       {
-        endTime: Between(startTime, endTime),
+        endTime: Raw(
+          (alias) => `${alias} > '${startTime}' AND ${alias} < '${endTime}'`
+        ),
         date,
       },
       {
@@ -107,7 +110,9 @@ export const updateById = async (
         date,
       },
       {
-        endTime: Between(startTime, endTime),
+        endTime: Raw(
+          (alias) => `${alias} > '${startTime}' AND ${alias} < '${endTime}'`
+        ),
         date,
       },
       {
