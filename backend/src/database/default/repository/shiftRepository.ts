@@ -5,8 +5,6 @@ import {
   FindConditions,
   DeleteResult,
   Between,
-  MoreThan,
-  LessThan,
   MoreThanOrEqual,
   LessThanOrEqual,
 } from "typeorm";
@@ -22,7 +20,6 @@ export const find = async (opts?: FindManyOptions<Shift>): Promise<Shift[]> => {
   const { where, order } = opts;
   const startDate = where[0];
   const endDate = where[1];
-  console.log(startDate, endDate);
   const data = await repository.find({
     where: {
       date: Between(startDate, endDate),
@@ -52,10 +49,24 @@ export const findOne = async (
   return data;
 };
 
-export const create = async (payload: Shift): Promise<Shift> => {
+export const create = async (payload: any): Promise<Shift> => {
   logger.info("Create");
   const repository = getRepository(Shift);
   let { date, startTime, endTime } = payload;
+  const first = date.getDate() - date.getDay() + 1;
+  const last = first + 6;
+  const monday = new Date(date.setDate(first));
+  const sunday = new Date(date.setDate(last));
+  const publishChecker = await repository.find({
+    where: {
+      date: Between(monday, sunday),
+    },
+  });
+  if (publishChecker.length) {
+    if (publishChecker[0].isPublished) {
+      return;
+    }
+  }
   const data = await repository.find({
     where: [
       {
@@ -74,7 +85,6 @@ export const create = async (payload: Shift): Promise<Shift> => {
       },
     ],
   });
-  console.log(data);
   if (data.length) {
     return;
   }
@@ -110,14 +120,44 @@ export const updateById = async (
   if (data.length) {
     return;
   }
+  const shift = await repository.findOne({
+    id,
+  });
+  if (shift.isPublished) {
+    return;
+  }
   await repository.update(id, payload);
   return findById(id);
 };
 
-export const deleteById = async (
-  id: string | string[]
-): Promise<DeleteResult> => {
+export const deleteById = async (id: any): Promise<DeleteResult> => {
   logger.info("Delete by id");
   const repository = getRepository(Shift);
+  const shift = await repository.findOne({
+    id,
+  });
+  if (shift.isPublished) {
+    return;
+  }
   return await repository.delete(id);
+};
+
+export const publishShift = async (
+  opts?: FindManyOptions<Shift>
+): Promise<Shift[]> => {
+  logger.info("Publish");
+  const repository = getRepository(Shift);
+  const { where } = opts;
+  const startDate = where[0];
+  const endDate = where[1];
+  await repository
+    .createQueryBuilder()
+    .update({
+      isPublished: true,
+    })
+    .where({
+      date: Between(startDate, endDate),
+    })
+    .execute();
+  return find(opts);
 };
